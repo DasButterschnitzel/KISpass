@@ -1,6 +1,7 @@
-// 00 — Showreel (16:9)
+// 00 — Showreel (16:9 and 9:16)
 // The package cut together on the beat, joined by its own transitions.
-// Includes a triptych: one piece playing in all three formats in sync.
+// Every scene plays its own master of the reel's format. Includes a triptych:
+// one piece playing in all three formats in sync.
 
 import { background } from '../core/stage.js';
 import { FORMATS } from '../formats.js';
@@ -75,29 +76,45 @@ function footage(ctx, fmt) {
   ctx.__keepBackdrop = true;
 }
 
+// slot = one format of the piece: width on the reel, left edge, bottom edge (base)
+function triptychSlots(fmt) {
+  if (fmt.id === '9x16') {
+    // vertical reel: 16:9 across the top, 9:16 and 1:1 below with aligned bottoms,
+    // the group centred in the zone free of platform UI (y 250 … 1520)
+    const W = 840, x0 = (fmt.w - W) / 2, w9 = 320, gap = 48, label = 52, rowGap = 60;
+    const h16 = (W * 9) / 16, h9 = (w9 * 16) / 9;
+    const top = 250 + (1270 - (h16 + label + rowGap + h9 + label)) / 2;
+    const base2 = top + h16 + label + rowGap + h9;
+    return [
+      { f: FORMATS['16x9'], w: W, x: x0, base: top + h16 },
+      { f: FORMATS['9x16'], w: w9, x: x0, base: base2 },
+      { f: FORMATS['1x1'], w: W - w9 - gap, x: x0 + w9 + gap, base: base2 },
+    ];
+  }
+  const ws = [['9x16', 405], ['16x9', 768], ['1x1', 432]], gap = 56;
+  let x = (fmt.w - ws.reduce((s, [, w]) => s + w, 0) - gap * 2) / 2;
+  return ws.map(([id, w]) => {
+    const slot = { f: FORMATS[id], w, x, base: 892 };
+    x += w + gap;
+    return slot;
+  });
+}
+
 function triptych(ctx, comp, t, fmt) {
   background(ctx, fmt, { color: '#D6D9DC' });
-  const slots = [
-    { f: FORMATS['9x16'], w: 405, label: '9:16' },
-    { f: FORMATS['16x9'], w: 768, label: '16:9' },
-    { f: FORMATS['1x1'], w: 432, label: '1:1' },
-  ];
-  const gap = 56;
-  let x = (fmt.w - slots.reduce((s, q) => s + q.w, 0) - gap * 2) / 2;
-  const base = 892;
+  const labelSize = fmt.id === '9x16' ? 30 : 26;
   const T = ctx.getTransform();
-  for (const s of slots) {
+  for (const s of triptychSlots(fmt)) {
     const h = (s.w * s.f.h) / s.f.w;
     const dw = Math.round(s.w * T.a), dh = Math.round(h * T.a);
-    const off = scratchCanvas('tri-' + s.label, dw, dh);
+    const off = scratchCanvas('tri-' + s.f.id, dw, dh);
     const oc = off.getContext('2d');
     oc.setTransform(1, 0, 0, 1, 0, 0);
     oc.clearRect(0, 0, dw, dh);
     oc.setTransform(dw / s.f.w, 0, 0, dh / s.f.h, 0, 0);
     comp.draw(oc, t, s.f, comp.copy || {});
-    ctx.drawImage(off, x, base - h, s.w, h);
-    text(ctx, s.label, x, base + 44, { size: 26, weight: 'book', color: '#55595f' });
-    x += s.w + gap;
+    ctx.drawImage(off, s.x, s.base - h, s.w, h);
+    text(ctx, s.f.label, s.x, s.base + 44, { size: labelSize, weight: 'book', color: '#55595f' });
   }
 }
 
@@ -108,7 +125,7 @@ export default {
   file: 'Showreel',
   name: 'Motion Identity',
   category: 'Reel',
-  formats: ['16x9'],
+  formats: ['16x9', '9x16'],
   notes: 'The package on one timeline, cut on the beat with its own transitions.',
   duration: PLAN.total,
   shutterAt(t) {

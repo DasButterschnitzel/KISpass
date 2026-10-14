@@ -129,7 +129,7 @@ protection zone (¼ M height) is respected in every layout.
 
 | No. | Piece | Duration | Deliverable | Notes |
 |---|---|---|---|---|
-| 00 | Showreel | 69.1 s | MP4 16:9 | the package on one timeline |
+| 00 | Showreel | 69.1 s | MP4 16:9 + 9:16 | the package on one timeline; the 9:16 reel cuts the vertical masters and stacks the format triptych |
 | 01 | Logo-Reveal „Die Faltung“ | 5.76 s | MP4 ×3 | ends on the exact lockup (hold from 3.4 s) |
 | 02 | Opener „Aus der Mitte“ | 12.48 s | MP4 ×3 | aerial camera over the arcs, four values, sign-off on the whole landscape* |
 | 03 | Slogan „Aus der Mitte. Für das Ganze.“ | 7.20 s | MP4 ×3 | in → hold 3.4–6.1 s → out to silver |
@@ -194,7 +194,8 @@ node tools/build-showcase.mjs                          # rebuild the showcase
 
 Options: `--fps 50` (frame rate is free; all motion is time-based), `--samples 24`
 (motion-blur sub-frames, `1` = off), `--shutter 180` (pieces with their own shutter
-curve keep it), `--crf 12`.
+curve keep it), `--crf 12`, `--from 17.28 --to 34.56` (render a range, e.g. to split
+the showreel across processes and join the parts with ffmpeg's concat demuxer).
 
 **Brand QA** (`npm run qa`) renders every composition in every format every 0.2 s three
 times — complete, without type, without type and arcs — and compares the frames pixel by

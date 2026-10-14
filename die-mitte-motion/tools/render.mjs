@@ -212,15 +212,17 @@ async function renderVideo(comp, fmt) {
     encs.push(ffmpeg([...input, '-c:v', 'png', '-pix_fmt', 'rgba', ...meta, base + '.mov']));
     encs.push(ffmpeg([...input, '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-crf', '18', '-b:v', '0', '-row-mt', '1', '-auto-alt-ref', '0', ...meta, base + '.webm']));
   }
+  // --from / --to (seconds) render a range, e.g. to split a long piece across processes
+  const f0 = Math.max(0, Math.round(+opt('from', 0) * FPS)), f1 = Math.min(n, Math.round(+opt('to', r.dur) * FPS));
   const t0 = Date.now();
-  for (let f = 0; f < n; f++) {
+  for (let f = f0; f < f1; f++) {
     let buf = r.frame(f / FPS);
     if (alpha) buf = unpremultiply(buf);
     for (const e of encs) await write(e.p.stdin, buf);
   }
   for (const e of encs) e.p.stdin.end();
   await Promise.all(encs.map((e) => e.done));
-  console.log(`✓ ${fileBase(comp, fmt)}  ${n} frames  ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  console.log(`✓ ${fileBase(comp, fmt)}  ${f1 - f0} frames  ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 }
 
 async function renderStills(comp, fmt) {

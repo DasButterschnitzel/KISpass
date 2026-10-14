@@ -16,7 +16,8 @@ export const FORMATS = {
 export const FORMAT_IDS = ['16x9', '9x16', '1x1'];
 
 // Type scale in px (URW Gothic, cap height = 0.739 × size). Every piece picks
-// from these steps — sizes are never fitted to a single text.
+// from these steps — sizes are not fitted per text; a guard only steps a level
+// down when custom copy would not fit its space (e.g. a long heading next to the bug).
 //   display  slogans, opener words, card headlines
 //   h1       info headings (Themen, Abstimmung)
 //   h2       list items, quotes, verdicts
