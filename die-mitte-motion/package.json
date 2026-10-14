@@ -1,0 +1,25 @@
+{
+  "name": "die-mitte-motion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Motion graphics identity for the fictional party \"Die Mitte\" (film production). Canvas-based compositions rendered to broadcast masters.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "scripts": {
+    "render": "node tools/render.mjs --jobs 4",
+    "stills": "node tools/render.mjs --mode stills --jobs 4",
+    "boards": "node tools/render.mjs --mode board",
+    "showcase": "node tools/build-showcase.mjs",
+    "qa": "node tools/qa.mjs",
+    "build": "npm run qa && npm run render && npm run stills && npm run boards && npm run showcase"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "0.1.65"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
