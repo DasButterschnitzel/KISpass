@@ -21,6 +21,7 @@ export default {
   category: 'Logo',
   notes: 'Sting for openings, channel idents, before speeches. Ends on the exact lockup (hold from 3.4 s).',
   duration: 5.76,
+  shutterAt: (t) => (t > 0.15 && t < 1.85 ? 90 : 180), // crisp draw edge, full blur for the glide
   stills: [0.8, 1.3, 2.0, 2.4, 5.5],
   draw(ctx, t, fmt) {
     background(ctx, fmt);

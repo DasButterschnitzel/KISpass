@@ -12,10 +12,11 @@ import { drawArcs, motion, REF_W, REF_H, MOTIF_TOP, CORNER_LEFT } from '../brand
 
 const OUT = 6.0;
 
+// 9:16 keeps clear of the platform action rail (x > ~940) and the bottom UI zone.
 const GEO = {
-  '16x9': { x: 128, bottom: 980, h: 164, name: 54, role: 34, pad: 46 },
-  '9x16': { x: 64, bottom: 1490, h: 196, name: 62, role: 38, pad: 50, full: true },
-  '1x1': { x: 72, bottom: 992, h: 150, name: 48, role: 30, pad: 40 },
+  '16x9': { x: 128, bottom: 980, h: 164, name: 54, role: 34, pad: 46, minW: 900, maxW: 1664 },
+  '9x16': { x: 64, bottom: 1370, h: 190, name: 62, role: 40, pad: 48, minW: 836, maxW: 836 },
+  '1x1': { x: 72, bottom: 992, h: 190, name: 62, role: 38, pad: 46, minW: 820, maxW: 936 },
 };
 
 export default {
@@ -35,11 +36,15 @@ export default {
     const g = GEO[fmt.id];
     const s = (g.h / (REF_H - MOTIF_TOP.corner)) * 0.86; // mini motif scale
     const arcW = (REF_W - CORNER_LEFT) * s;
-    const nameW = measure(ctx, copy.name, 'demi', g.name);
-    const roleW = measure(ctx, copy.role, 'book', g.role);
-    const textW = Math.max(nameW, roleW);
-    let pw = g.pad + textW + g.pad * 1.4 + arcW;
-    if (g.full) pw = fmt.w - g.x * 2; // vertical: fixed full-width panel
+    // the panel follows the text (min/max per format); long names step down in size
+    const gap = 64;
+    const room = g.maxW - g.pad - gap - arcW;
+    let nameSize = g.name, roleSize = g.role;
+    const nW = measure(ctx, copy.name, 'demi', nameSize), rW = measure(ctx, copy.role, 'book', roleSize);
+    if (nW > room) nameSize = Math.floor((nameSize * room) / nW);
+    if (rW > room) roleSize = Math.floor((roleSize * room) / rW);
+    const textW = Math.max(measure(ctx, copy.name, 'demi', nameSize), measure(ctx, copy.role, 'book', roleSize));
+    const pw = Math.min(g.maxW, Math.max(g.minW, g.pad + textW + gap + arcW));
     const top = g.bottom - g.h;
 
     const open = prog(t, 0.0, 0.72, E.arrive);
@@ -63,9 +68,9 @@ export default {
     // type
     const nx = g.x + g.pad;
     const nb = top + g.h * 0.47;
-    const rb = nb + g.role * 1.55;
-    revealLine(ctx, copy.name, nx, nb, prog(t, 0.3, 0.72), { size: g.name, weight: 'demi', exit: clamp01((t - OUT) / 0.4) });
-    revealLine(ctx, copy.role, nx, rb, prog(t, 0.4, 0.72), { size: g.role, weight: 'book', exit: clamp01((t - OUT - 0.04) / 0.4) });
+    const rb = nb + roleSize * 1.55;
+    revealLine(ctx, copy.name, nx, nb, prog(t, 0.3, 0.72), { size: nameSize, weight: 'demi', exit: clamp01((t - OUT) / 0.4) });
+    revealLine(ctx, copy.role, nx, rb, prog(t, 0.4, 0.72), { size: roleSize, weight: 'book', exit: clamp01((t - OUT - 0.04) / 0.4) });
     ctx.restore();
   },
 };

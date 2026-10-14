@@ -3,10 +3,11 @@
 // the loop, and the two slogans take turns. Frame 0 = frame N (loop-safe).
 
 import { background } from '../core/stage.js';
-import { tok } from '../formats.js';
+import { tok, scale } from '../formats.js';
 import { layoutBlock, drawBlock } from '../core/layout.js';
 import { drawLockupH, drawLockupS, LOCK_S } from '../brand/logo.js';
 import { drawArcs, place, motion, motifTop } from '../brand/arcs.js';
+import { SLOGAN_LEAD } from '../brand/slogan-layout.js';
 
 const LOOP = 19.2; // 40 beats
 const A_IN = 18.3, A_OUT = 8.4, B_IN = 9.3, B_OUT = 17.4;
@@ -19,6 +20,7 @@ export default {
   name: 'Seamless 19,2 s',
   category: 'Loop',
   loop: true,
+  formats: ['16x9', '9x16', '1x1', '12x5'],
   notes: 'Seamless loop for LED walls and hall screens (frame 0 = frame N). Calm by design.',
   duration: LOOP,
   stills: [4.0, 8.8, 13.0, 18.7],
@@ -26,28 +28,34 @@ export default {
   draw(ctx, t, fmt, copy) {
     background(ctx, fmt);
     const T = tok(fmt);
-    const wide = fmt.id === '16x9';
-    const pl = place(fmt, T.arcKind, wide ? 0.84 : T.arcS);
+    const wide = fmt.id === '16x9' || fmt.id === '12x5';
+    const wall = fmt.id === '12x5';
+    const pl = place(fmt, T.arcKind, wall ? 1.3 : wide ? 0.84 : T.arcS);
     // two drift cycles per loop; each disc on its own phase
     drawArcs(ctx, T.arcKind, pl, motion(t, { breathe: { amp: 9, period: LOOP / 2 } }));
 
-    const size = wide ? 132 : T.display;
+    const size = scale(fmt).display;
     const x = wide ? T.m : fmt.w / 2;
     const align = wide ? 'left' : 'center';
+    const lead = size * SLOGAN_LEAD; // same leading as the slogan cards 03 / 04
     let top;
     if (wide) {
-      drawLockupH(ctx, T.m, 150, 120);
-      top = 420;
+      // logo top left, slogan one type size below it (16:9 and the stage wall share the proportions);
+      // the wall keeps its lower 480 px clear for lectern and speaker
+      const hm = Math.round(size / 1.2);
+      const y = wall ? T.top : 150;
+      drawLockupH(ctx, T.m, y, hm);
+      top = y + hm + Math.round(size * 1.04);
     } else {
       const hm = fmt.id === '9x16' ? 220 : 150;
       const y = fmt.id === '9x16' ? T.top + 40 : T.top - 10;
       drawLockupS(ctx, fmt.w / 2, y, hm);
       const lockBottom = y + LOCK_S.baseDy * hm;
-      const probe = layoutBlock(ctx, [{ text: copy.a1, size }, { text: copy.a2, size, lead: size * 1.12 }], 0);
+      const probe = layoutBlock(ctx, [{ text: copy.a1, size }, { text: copy.a2, size, lead }], 0);
       top = (lockBottom + motifTop(T.arcKind, pl)) / 2 - probe.height / 2 + (fmt.id === '9x16' ? 0 : 10);
     }
-    const blockA = layoutBlock(ctx, [{ text: copy.a1, size }, { text: copy.a2, size, lead: size * 1.12 }], top);
-    const blockB = layoutBlock(ctx, [{ text: copy.b1, size }, { text: copy.b2, size, lead: size * 1.12 }], top);
+    const blockA = layoutBlock(ctx, [{ text: copy.a1, size }, { text: copy.a2, size, lead }], top);
+    const blockB = layoutBlock(ctx, [{ text: copy.b1, size }, { text: copy.b2, size, lead }], top);
     const tA = t < A_OUT + 1 ? t + LOOP : t;
     drawBlock(ctx, tA, blockA, {
       x, align,

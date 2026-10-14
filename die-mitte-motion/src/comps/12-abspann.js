@@ -6,7 +6,7 @@
 import { background, withCamera } from '../core/stage.js';
 import { prog, lerp } from '../core/time.js';
 import { E } from '../core/ease.js';
-import { tok } from '../formats.js';
+import { tok, scale } from '../formats.js';
 import { revealLine, CAP } from '../core/text.js';
 import { lockupHWidth, LOCK_S } from '../brand/logo.js';
 import { lockupHReveal, lockupSReveal } from '../brand/lockup-anim.js';
@@ -28,12 +28,13 @@ export default {
   category: 'Logo',
   notes: 'End card. Ends on a hold — the last frame is the sign-off.',
   duration: 7.2,
+  shutterAt: (t) => (t > 1.4 && t < 2.95 ? 90 : 180),
   stills: [1.0, 2.2, 3.2, 7.0],
   copy: { slogan: 'Gemeinsam weiter.' },
   draw(ctx, t, fmt, copy) {
     background(ctx, fmt);
     const T = tok(fmt);
-    const g = GEO[fmt.id];
+    const g = { ...GEO[fmt.id], slogan: scale(fmt).h3 };
     const z = 1 + 0.03 * (1 - prog(t, 0, 6.6, E.glide));
     const cam = { z, fx: fmt.w / 2, fy: fmt.h * 0.42 };
 

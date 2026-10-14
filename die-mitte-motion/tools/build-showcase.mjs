@@ -204,14 +204,14 @@ const html = `<!doctype html>
   </div>
   <div class="rules" style="margin-top:36px">
     <div><h3>Type moves one way</h3><ul><li>Lines rise out of their own baseline mask — no fades, no blur, no scaling, no typewriter.</li><li>URW Gothic Demi for statements, Book for information, tracked capitals only for small labels.</li><li>Slogans end on „Der Punkt“: the full stop lands a beat after its line.</li><li>Counters use fixed-width digit slots, chapter numbers roll like an odometer.</li></ul></div>
-    <div><h3>The logo is built, never decorated</h3><ul><li>Resting frames show the untouched lockups from the production set.</li><li>Protection zone ≥ ¼ M height, also during motion.</li><li>No shadows, glows, outlines, 3D or colour changes on the mark.</li><li>Small bug: horizontal lockup, top right (16:9) or top centre (9:16, 1:1).</li></ul></div>
+    <div><h3>The logo is built, never decorated</h3><ul><li>Resting frames show the untouched lockups from the production set.</li><li>Protection zone ≥ ¼ M height, also during motion.</li><li>No shadows, glows, outlines, 3D or colour changes on the mark.</li><li>Small bug: horizontal lockup, top right in 16:9 and on editorial squares, centred above centred layouts.</li></ul></div>
   </div>
 </div></section>
 
 <section id="bibliothek"><div class="wrap">
   <div class="kicker">04 · Library</div>
   <h2>Thirteen pieces, three formats each.</h2>
-  <p class="intro">Click any piece for the player: frame stepping (← →), space to play, safe-area guides. Overlays with alpha are shown over a neutral footage stand-in.</p>
+  <p class="intro">Click any piece for the player: frame stepping (← →), space to play, safe-area guides; the stage loop also plays in 12:5. Overlays with alpha are shown over a neutral footage stand-in.</p>
   <div class="toolbar"><button class="on" data-lib-format="16x9">16:9</button><button data-lib-format="9x16">9:16</button><button data-lib-format="1x1">1:1</button></div>
   <div id="library-grid" data-format="16x9"></div>
 </div></section>
@@ -219,7 +219,7 @@ const html = `<!doctype html>
 <section id="formate"><div class="wrap">
   <div class="kicker">05 · Formats</div>
   <h2>Recomposed, never cropped.</h2>
-  <p class="intro">16:9 is editorial and left-aligned with the corner arcs of the presentation set. 9:16 and 1:1 are centred with the bottom landscape; vertical keeps type out of the top 250 px and bottom 400 px reserved for platform UI. Same timing, same beat — different composition.</p>
+  <p class="intro">16:9 is editorial and left-aligned with the corner arcs of the presentation set. 9:16 and 1:1 centre their statements over the bottom landscape and keep information left-aligned for reading; vertical keeps type out of the top 250 px and bottom 400 px reserved for platform UI. Same timing, same beat — different composition. The stage loop adds a 12:5 master (3840 × 1600) for the LED wall.</p>
   <div class="toolbar"><select id="tri-select" aria-label="Composition"></select></div>
   <div class="tri"><div class="stage"><canvas data-tri="16x9"></canvas></div><div class="stage"><canvas data-tri="9x16"></canvas></div><div class="stage"><canvas data-tri="1x1"></canvas></div></div>
   <div class="tri-labels"><span>16:9 · 1920 × 1080</span><span>9:16 · 1080 × 1920</span><span>1:1 · 1080 × 1080</span></div>
@@ -251,7 +251,7 @@ const html = `<!doctype html>
 <section id="lieferumfang"><div class="wrap">
   <div class="kicker">07 · Deliverables</div>
   <h2>Broadcast masters, overlays, stills.</h2>
-  <p class="intro">25 fps progressive, H.264 High, BT.709 (limited range), CRF 12, 180° shutter motion blur with 24 sub-frames. Overlays: PNG-in-MOV (lossless RGBA, NLE-ready) and WebM VP9 with alpha. Texts can be changed and re-rendered with <code>node tools/render.mjs --comp &lt;id&gt; --copy texts.json</code>.</p>
+  <p class="intro">25 fps progressive, H.264 High, BT.709 (limited range), CRF 12, 180° shutter motion blur with 24 sub-frames (90° while the logo draws and in transitions). Overlays: PNG-in-MOV (lossless RGBA, NLE-ready) and WebM VP9 with alpha. Texts can be changed and re-rendered with <code>node tools/render.mjs --comp &lt;id&gt; --copy texts.json</code>.</p>
   <div class="tablewrap"><table id="deliverables"><thead><tr><th>No.</th><th>Piece</th><th>Duration</th><th>Codec</th><th>File (per format)</th></tr></thead><tbody></tbody></table></div>
 </div></section>
 </main>
@@ -265,7 +265,7 @@ const html = `<!doctype html>
     <button id="m-play">Pause</button><button id="m-prev" aria-label="Previous frame">←</button><button id="m-next" aria-label="Next frame">→</button>
     <input id="m-range" type="range" min="0" max="1000" value="0" aria-label="Scrub">
     <span class="time" id="m-time"></span>
-    <button data-m-format="16x9" class="on">16:9</button><button data-m-format="9x16">9:16</button><button data-m-format="1x1">1:1</button>
+    <button data-m-format="16x9" class="on">16:9</button><button data-m-format="9x16">9:16</button><button data-m-format="1x1">1:1</button><button data-m-format="12x5" hidden>12:5</button>
     <label><input type="checkbox" id="m-guides"> Safe areas</label>
   </div>
   <div class="info"><p id="m-notes"></p><ul id="m-files"></ul></div>

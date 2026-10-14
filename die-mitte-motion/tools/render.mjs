@@ -47,7 +47,7 @@ const COPY = opt('copy') ? JSON.parse(fs.readFileSync(opt('copy'), 'utf8')) : {}
 const comps = compSel.includes('all') ? COMPS : COMPS.filter((c) => compSel.includes(c.id) || compSel.includes(c.no));
 const fmts = fmtSel.includes('all') ? FORMAT_IDS : fmtSel;
 const jobs = [];
-for (const c of comps) for (const f of fmts) if (!c.formats || c.formats.includes(f)) jobs.push([c, FORMATS[f]]);
+for (const c of comps) for (const f of fmtSel.includes('all') ? c.formats || FORMAT_IDS : fmts) if (!c.formats || c.formats.includes(f)) jobs.push([c, FORMATS[f]]);
 if (!jobs.length) {
   console.error('nothing to render', { compSel, fmtSel });
   process.exit(1);
@@ -132,7 +132,8 @@ function makeRenderer(comp, fmt) {
   }
   function frame(t, samples = SAMPLES) {
     if (samples <= 1) return Buffer.from(renderAt(wrapT(t)));
-    const exp = SHUTTER / 360 / FPS;
+    const sh = comp.shutterAt ? comp.shutterAt(t) : comp.shutter ?? SHUTTER;
+    const exp = sh / 360 / FPS;
     const ts = Array.from({ length: samples }, (_, k) => wrapT(t - exp / 2 + ((k + 0.5) * exp) / samples));
     const first = Buffer.from(renderAt(ts[0]));
     const last = renderAt(ts[samples - 1]);
@@ -269,8 +270,7 @@ async function renderSheet(comp, fmt) {
 async function renderBoard(comp) {
   const H = 320, pad = 16, label = 34;
   const rows = [];
-  for (const fid of FORMAT_IDS) {
-    if (comp.formats && !comp.formats.includes(fid)) continue;
+  for (const fid of comp.formats || FORMAT_IDS) {
     const fmt = FORMATS[fid];
     const r = makeRenderer(comp, fmt);
     const times = comp.stills || [r.dur - 0.5];

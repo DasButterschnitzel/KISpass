@@ -10,7 +10,8 @@
 import { background } from '../core/stage.js';
 import { prog, clamp01 } from '../core/time.js';
 import { cameraPath } from '../core/spline.js';
-import { revealLine, measure, CAP } from '../core/text.js';
+import { revealLine, measure } from '../core/text.js';
+import { tok, scale } from '../formats.js';
 import { drawArcs, REF_W, REF_H } from '../brand/arcs.js';
 import { lockupHWidth, LOCK_S } from '../brand/logo.js';
 import { lockupHReveal, lockupSReveal } from '../brand/lockup-anim.js';
@@ -20,44 +21,47 @@ const BEATS = [0.8, 2.3, 4.2, 6.1]; // shot hold starts
 const HOLD = 0.7;
 const FINAL_T = 9.6;
 
-// Per format: shots (z = px per ref unit, F = ref focus, S = screen anchor as fractions),
-// text placement per shot, and the final framing (the brand layout).
+// Per format: shots (z = px per ref unit, F = ref focus, S = screen anchor as fractions)
+// and the final framing (the brand layout). Every hold shows either the complete
+// band (black + red + gold) or greys only — never a partial band.
+// Words: one size and one baseline per format; 16:9 on the 128 / 1792 margins,
+// 9:16 and 1:1 centred like the end slate.
 const PLAN = {
   '16x9': {
-    word: 150,
+    baseline: 330,
     shots: [
-      { z: 3.4, F: [1500, 430], S: [0.62, 0.64], tx: 128, ty: 0.34 },
-      { z: 2.6, F: [430, 500], S: [0.5, 0.68], tx: 0.46, ty: 0.22 },
-      { z: 2.15, F: [1000, 470], S: [0.5, 0.7], tx: 128, ty: 0.3 },
-      { z: 2.7, F: [200, 330], S: [0.4, 0.62], tx: 128, ty: 0.24 },
+      { z: 3.4, F: [1580, 395], S: [0.62, 0.64], align: 'left' }, // Offen — greys, open sky
+      { z: 2.6, F: [430, 500], S: [0.5, 0.68], align: 'right' }, // Verbindend — the full band
+      { z: 2.15, F: [800, 470], S: [0.5, 0.7], align: 'left' }, // Zukunftsgerichtet — sunrise
+      { z: 2.7, F: [150, 300], S: [0.4, 0.62], align: 'left' }, // Menschlich — soft greys
     ],
     final: { z: 1.1, F: [887, 887], S: [960, 1331] },
     lock: { hm: 150, y: 222, drawH: 230 },
-    slogan: { size: 84, y: 532, oneLine: true },
+    slogan: { size: 60, y: 520, oneLine: true },
   },
   '9x16': {
-    word: 118,
+    baseline: 620,
     shots: [
-      { z: 2.6, F: [1500, 430], S: [0.6, 0.62], tx: 96, ty: 0.36 },
-      { z: 1.8, F: [430, 520], S: [0.5, 0.66], tx: 96, ty: 0.34 },
-      { z: 1.7, F: [1000, 470], S: [0.5, 0.66], tx: 0.5, ty: 0.36, center: true },
-      { z: 2.0, F: [200, 330], S: [0.45, 0.6], tx: 96, ty: 0.3 },
+      { z: 2.6, F: [1720, 360], S: [0.6, 0.62] },
+      { z: 1.8, F: [430, 500], S: [0.5, 0.66] },
+      { z: 1.7, F: [760, 470], S: [0.5, 0.66] },
+      { z: 2.2, F: [90, 215], S: [0.45, 0.7] },
     ],
     final: { z: 0.755, F: [887, 887], S: [540, 1920] },
     lock: { hm: 250, y: 330, drawH: 300 },
-    slogan: { size: 92, y: 1050 },
+    slogan: { size: 88, y: 1050 },
   },
   '1x1': {
-    word: 104,
+    baseline: 330,
     shots: [
-      { z: 2.4, F: [1500, 430], S: [0.6, 0.64], tx: 88, ty: 0.34 },
-      { z: 1.7, F: [430, 500], S: [0.5, 0.7], tx: 88, ty: 0.24 },
-      { z: 1.5, F: [1000, 470], S: [0.5, 0.68], tx: 0.5, ty: 0.32, center: true },
-      { z: 2.0, F: [200, 330], S: [0.45, 0.62], tx: 88, ty: 0.26 },
+      { z: 2.4, F: [1650, 380], S: [0.6, 0.62] },
+      { z: 1.7, F: [430, 500], S: [0.5, 0.7] },
+      { z: 1.5, F: [760, 470], S: [0.5, 0.68] },
+      { z: 2.2, F: [120, 260], S: [0.45, 0.7] },
     ],
     final: { z: 0.609, F: [887, 887], S: [540, 1080] },
     lock: { hm: 170, y: 120, drawH: 210 },
-    slogan: { size: 76, y: 548 },
+    slogan: { size: 72, y: 548 },
   },
 };
 
@@ -90,6 +94,7 @@ export default {
   category: 'Opener',
   notes: 'Title sequence for broadcasts, streams and the party congress. 26 beats. Ends on the key visual.',
   duration: 12.48,
+  shutterAt: (t) => (t > 8.2 && t < 9.8 ? 90 : 180),
   stills: [0.4, 1.2, 2.9, 4.8, 6.7, 8.4, 9.4, 12.2],
   copy: {
     values: ['Offen.', 'Verbindend.', 'Zukunftsgerichtet.', 'Menschlich.'],
@@ -108,7 +113,11 @@ export default {
       k: 1 + ((DEPTH[d.id] ?? 1) - 1) * kpar, kx: cam.F[0], ky: cam.F[1],
     }));
 
-    // the four values, one per shot
+    // the four values, one per shot — one size per format (fits the longest word)
+    const S = scale(fmt);
+    const T = tok(fmt);
+    const longest = copy.values.reduce((a, b) => (measure(ctx, b, 'demi', 100) > measure(ctx, a, 'demi', 100) ? b : a));
+    const wordSize = fitWord(ctx, longest, S.display, fmt.w - 2 * T.m);
     copy.values.forEach((v, i) => {
       const s = P.shots[i];
       // in just before the camera settles, out before the next word arrives (no overlap)
@@ -116,10 +125,10 @@ export default {
       const q = prog(t, t0, 0.84);
       const ex = clamp01((t - (BEATS[i] + HOLD + 0.16)) / 0.36);
       if (q <= 0 || ex >= 1) return;
-      const x = s.tx <= 1 ? s.tx * fmt.w : s.tx;
-      const size = fitWord(ctx, v, P.word, s.center ? fmt.w - 192 : fmt.w - x - 72);
-      revealLine(ctx, v, s.center ? fmt.w / 2 : x, s.ty * fmt.h + size * CAP * 0.5, q, {
-        size, align: s.center ? 'center' : 'left', exit: ex, qPunct: prog(t, t0 + 0.24, 0.6),
+      const align = fmt.id === '16x9' ? s.align : 'center';
+      const x = align === 'center' ? fmt.w / 2 : align === 'right' ? fmt.w - T.m : T.m;
+      revealLine(ctx, v, x, P.baseline, q, {
+        size: wordSize, align, exit: ex, qPunct: prog(t, t0 + 0.24, 0.6),
       });
     });
 

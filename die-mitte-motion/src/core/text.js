@@ -35,6 +35,18 @@ export function measure(ctx, text, weight, size, tracking = 0) {
   return w;
 }
 
+const lsbCache = new Map();
+export function opticalShift(ctx, str) {
+  const key = ctx.font + '|' + str[0];
+  let v = lsbCache.get(key);
+  if (v == null) {
+    const m = ctx.measureText(str[0]);
+    v = Number.isFinite(m.actualBoundingBoxLeft) ? Math.min(0, m.actualBoundingBoxLeft) : 0;
+    lsbCache.set(key, v);
+  }
+  return v;
+}
+
 /** Plain text line. align: 'left' | 'center' | 'right'. y = baseline. */
 export function text(ctx, str, x, y, o = {}) {
   const weight = o.weight || 'demi';
@@ -49,7 +61,10 @@ export function text(ctx, str, x, y, o = {}) {
   ctx.fillStyle = o.color || '#1C1D20';
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
-  if (!tracking) ctx.fillText(str, x0, y);
+  // optical margin: left-aligned display type hangs its side bearing into the margin
+  const optical = o.optical ?? (o.align == null || o.align === 'left');
+  const ox = optical && !tracking && size >= 48 ? opticalShift(ctx, str) : 0;
+  if (!tracking) ctx.fillText(str, x0 + ox, y);
   else {
     let cx = x0;
     for (const ch of str) {
@@ -67,6 +82,11 @@ export function text(ctx, str, x, y, o = {}) {
  * q: 0..1 (already eased or raw; raw is eased with `ease`).
  * o.exit: 0..1 — line leaves upwards through the top of the same mask.
  */
+function fontCtx(ctx, weight, size) {
+  ctx.font = font(weight, size);
+  return ctx;
+}
+
 export function revealLine(ctx, str, x, y, q, o = {}) {
   const size = o.size || 40;
   const ease = o.ease || E.arrive;
@@ -88,12 +108,14 @@ export function revealLine(ctx, str, x, y, q, o = {}) {
   const punct = o.qPunct != null && /[.!?]$/.test(str);
   const body = punct ? str.slice(0, -1) : str;
   const dy = (1 - e) * travel - ex * travel;
-  text(ctx, body, x0, y + dy, { ...o, align: 'left' });
+  const optical = o.align == null || o.align === 'left';
+  const ox = optical && size >= 48 && !tracking ? opticalShift(fontCtx(ctx, weight, size), str) : 0;
+  text(ctx, body, x0, y + dy, { ...o, align: 'left', optical });
   if (punct) {
     const ep = clamp01(o.qPunct);
-    const px = x0 + w - measure(ctx, str.slice(-1), weight, size, tracking);
+    const px = x0 + ox + w - measure(ctx, str.slice(-1), weight, size, tracking);
     const dyp = (1 - ep) * travel - ex * travel;
-    if (ep > 0) text(ctx, str.slice(-1), px, y + dyp, { ...o, align: 'left' });
+    if (ep > 0) text(ctx, str.slice(-1), px, y + dyp, { ...o, align: 'left', optical: false });
   }
   ctx.restore();
   return { x0, x1: x0 + w, w };
@@ -118,7 +140,7 @@ export function wipeLine(ctx, str, x, y, q, o = {}) {
   ctx.rect(L + Wd * ex, y - size * 1.05, Wd * (e - ex), size * 1.4);
   ctx.clip();
   const dx = (1 - e) * -slide + ex * slide;
-  text(ctx, str, x0 + dx, y, { ...o, align: 'left' });
+  text(ctx, str, x0 + dx, y, { ...o, align: 'left', optical: o.align == null || o.align === 'left' });
   ctx.restore();
   return { x0, x1: x0 + w, w };
 }
@@ -186,7 +208,7 @@ export function rollNumber(ctx, str, x, y, q, r, o = {}) {
   let w = 0;
   for (const ch of str) w += /\d/.test(ch) ? slot : measure(ctx, ch, weight, size);
   let cx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
-  const top = y - size * 1.0, bottom = y + size * 0.3, travel = bottom - top;
+  const top = y - size * CAP - size * 0.03, bottom = y + size * 0.03, travel = (bottom - top) * 1.08;
   const step = size * 1.05;
   ctx.save();
   ctx.beginPath();

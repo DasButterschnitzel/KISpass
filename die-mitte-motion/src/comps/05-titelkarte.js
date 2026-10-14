@@ -5,13 +5,13 @@
 import { background } from '../core/stage.js';
 import { prog, clamp01 } from '../core/time.js';
 import { E } from '../core/ease.js';
-import { tok } from '../formats.js';
+import { tok, scale } from '../formats.js';
 import { C } from '../brand/palette.js';
 import { layoutBlock, drawBlock } from '../core/layout.js';
 import { rollNumber } from '../core/text.js';
 import { drawArcs, place, motion, motifTop } from '../brand/arcs.js';
 import { aufgang, senken } from '../brand/arc-moves.js';
-import { logoBug } from '../brand/bug.js';
+import { logoBug, groupWithBug } from '../brand/bug.js';
 
 const OUT = 5.16;
 
@@ -37,9 +37,11 @@ export default {
       breathe: { amp: 3, period: 6, t0: 1.6 },
     }));
 
-    const nSize = wide ? 104 : fmt.id === '9x16' ? 112 : 92;
-    const tSize = wide ? 144 : fmt.id === '9x16' ? 108 : 90;
-    const sSize = wide ? 52 : fmt.id === '9x16' ? 50 : 40;
+    // hierarchy: the headline leads, the red numeral is 0.7 × its size
+    const S = scale(fmt);
+    const tSize = S.display;
+    const nSize = Math.round(tSize * 0.7);
+    const sSize = S.body + (wide ? 6 : 4);
     const sub = copy.subtitle.split('\n');
     const lines = [
       { text: copy.title, size: tSize, weight: 'demi', lead: nSize * 0.5 + tSize * 1.05 },
@@ -47,9 +49,14 @@ export default {
     ];
     // number + block layout (number is drawn separately with the roll)
     const probe = layoutBlock(ctx, [{ text: copy.number, size: nSize }, ...lines], 0);
-    const avail0 = wide ? 0 : T.top + T.bugM * 2;
-    const avail1 = wide ? 1080 * 0.86 : motifTop(T.arcKind, pl);
-    const top = wide ? 460 - probe.height / 2 : (avail0 + avail1) / 2 - probe.height / 2 - (fmt.id === '9x16' ? 30 : 0);
+    let top, bugY;
+    if (wide) top = 460 - probe.height / 2;
+    else {
+      const free0 = fmt.id === '1x1' ? T.top + T.bugM * 2 : T.top;
+      const g = groupWithBug(fmt, probe.height, free0, motifTop(T.arcKind, pl) - 60);
+      top = g.top;
+      bugY = g.bugY ?? undefined;
+    }
     const block = layoutBlock(ctx, [{ text: copy.number, size: nSize }, ...lines], top);
     const x = wide ? T.m : fmt.w / 2;
     const align = wide ? 'left' : 'center';
@@ -64,6 +71,6 @@ export default {
       exit: { start: OUT + 0.05, stagger: 0.05, dur: 0.48 },
     });
 
-    logoBug(ctx, t, fmt, 1.3, { exit: clamp01((t - OUT - 0.1) / 0.5) });
+    logoBug(ctx, t, fmt, 1.3, { y: bugY, exit: clamp01((t - OUT - 0.1) / 0.5) });
   },
 };

@@ -111,6 +111,11 @@ export default {
   formats: ['16x9'],
   notes: 'The package on one timeline, cut on the beat with its own transitions.',
   duration: PLAN.total,
+  shutterAt(t) {
+    for (const s of PLAN.items) if (s.tr && t >= s.t0 - 0.04 && t < s.t1 + 0.04) return 90;
+    const sc = PLAN.items.find((s) => !s.tr && t >= s.t0 && t < s.t1);
+    return sc && sc.comp && sc.comp.shutterAt ? sc.comp.shutterAt(sc.from + (t - sc.t0)) : 180;
+  },
   stills: [3, 14, 33.5, 60],
   draw(ctx, t, fmt) {
     const items = PLAN.items;

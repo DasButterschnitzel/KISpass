@@ -25,8 +25,7 @@ const comps = COMPS.filter((c) => (sel.includes('all') || sel.includes(c.id)) &&
 
 let issues = 0;
 for (const comp of comps) {
-  for (const fid of FORMAT_IDS) {
-    if (comp.formats && !comp.formats.includes(fid)) continue;
+  for (const fid of comp.formats || FORMAT_IDS) {
     const fmt = FORMATS[fid];
     const cv = createCanvas(fmt.w, fmt.h);
     const ctx = cv.getContext('2d');

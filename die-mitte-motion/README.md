@@ -4,7 +4,7 @@ Motion graphics system for **Die Mitte**, the fictional party of the film produc
 (*fiktive Partei · Filmrequisite*). It extends the static production set
 (Designguide „Offene Mitte“, Gestaltungsstand 01) into motion: thirteen compositions,
 each composed individually for **16:9, 9:16 and 1:1**, plus transitions with alpha,
-a seamless stage loop, a showreel and a live showcase.
+a seamless stage loop (also as a **12:5 LED-wall master**), a showreel and a live showcase.
 
 > Open **`showcase/Die-Mitte-Motion-Showcase.html`** in a browser. It is a single
 > self-contained file: every composition plays live, with a frame-accurate player,
@@ -53,7 +53,7 @@ One **Takt** (beat) = **0.48 s = 12 frames @ 25 fps** (125 BPM). Music edits lan
 | „Der Punkt“ | the closing full stop lands 0.30 s after its line |
 | Stagger | 2–3 frames between lines, letters, discs |
 | Exit | ≈ ⅔ of the entrance |
-| Motion blur | 180° shutter, 24 sub-frames, on every moving frame |
+| Motion blur | 180° shutter, 24 sub-frames, on every moving frame; 90° while the logo draws and during transitions, so edges stay crisp |
 
 Four curves only — no overshoot:
 
@@ -95,11 +95,32 @@ Every format is recomposed, never cropped.
 
 | | 16:9 · 1920×1080 | 9:16 · 1080×1920 | 1:1 · 1080×1080 |
 |---|---|---|---|
-| Layout | editorial, left-aligned | centred | centred |
+| Layout | editorial, left-aligned | statements centred, information left-aligned | statements centred, information left-aligned |
 | Arcs | corner motif (as in the presentation set) | bottom landscape (scale 0.755, as Story-9x16) | bottom landscape (scale 0.609, as Quadrat) |
 | Margins | 128 px (title-safe 96) | 96 px; type out of top 250 / bottom 400 px | 88 px |
-| Display type | 120 px | 104 px | 92 px |
-| Logo bug | horizontal lockup, top right | horizontal lockup, top centre | horizontal lockup, top centre |
+| Logo bug | horizontal lockup, top right | horizontal lockup, centred; on centred cards it groups with the content (never above y = 330) | top right on editorial cards, centred above centred cards |
+
+**Stage wall · 12:5 · 3840×1600** — the Bühnen-Loop also ships as an LED-wall master:
+16:9 proportions (logo top left, slogan one type size below), 256 px margins, larger
+type, and the lower 480 px kept free of type for lectern and speaker.
+
+**Type scale** (px, URW Gothic Demi unless noted) — one scale per format; the pieces pick
+their levels from it (only the lower third uses dedicated broadcast sizes):
+
+| Level | 16:9 | 9:16 | 1:1 | 12:5 | Used for |
+|---|---|---|---|---|---|
+| display | 144 | 112 | 100 | 232 | slogans, chapter titles, big words |
+| h1 | 108 | 96 | 84 | 176 | headings of information cards |
+| h2 | 84 | 80 | 68 | 136 | list items, quotes, verdicts (1:1 headings) |
+| h3 | 64 | 60 | 54 | 104 | end-card slogan, Social slogan (1:1 list items) |
+| body | 42 | 44 | 40 | 68 | subtitles and descriptions (Book), names (Demi) |
+| small | 34 | 38 | 36 | 56 | functions, captions — Book |
+| label | 30 | 40 | 38 | 48 | tracked capitals (0.1 em) — Book |
+
+In 1:1 the information cards step down one level: the square's heading shares its line
+with the bug and keeps at least 1.8 M heights of air to it (long headings fit
+themselves). Left-aligned type from 48 px up is aligned by its ink, not by the glyph's
+side bearing, so lines starting with different letters share one optical edge.
 
 Lockups are reproduced exactly from `Logo-horizontal.svg` and `Logo-gestapelt.svg`; the
 protection zone (¼ M height) is respected in every layout.
@@ -110,19 +131,23 @@ protection zone (¼ M height) is respected in every layout.
 |---|---|---|---|---|
 | 00 | Showreel | 69.1 s | MP4 16:9 | the package on one timeline |
 | 01 | Logo-Reveal „Die Faltung“ | 5.76 s | MP4 ×3 | ends on the exact lockup (hold from 3.4 s) |
-| 02 | Opener „Aus der Mitte“ | 12.48 s | MP4 ×3 | aerial camera over the arcs, four values, sign-off |
+| 02 | Opener „Aus der Mitte“ | 12.48 s | MP4 ×3 | aerial camera over the arcs, four values, sign-off on the whole landscape* |
 | 03 | Slogan „Aus der Mitte. Für das Ganze.“ | 7.20 s | MP4 ×3 | in → hold 3.4–6.1 s → out to silver |
 | 04 | Slogan „Gemeinsam weiter.“ | 6.24 s | MP4 ×3 | exits keep moving forward |
-| 05 | Titelkarte | 6.24 s | MP4 ×3 | number / title / line editable |
+| 05 | Titelkarte | 6.24 s | MP4 ×3 | number rolls like an odometer; number / title / line editable |
 | 06 | Bauchbinde | 7.20 s | MOV + WebM alpha ×3 | in 0–1 s, out from 6.0 s |
 | 07 | Infografik „Unsere Themen“ | 8.16 s | MP4 ×3 | red focus walks through the list |
-| 08 | Infografik „Abstimmung“ | 8.64 s | MP4 ×3 | results editable (values in %) |
-| 09 | Zitat | 8.16 s | MP4 ×3 | sentences break at full stops |
+| 08 | Infografik „Abstimmung“ | 8.64 s | MP4 ×3 | Ja / Nein / Enthaltung = gold / red / black — together the complete band; values in % |
+| 09 | Zitat | 8.16 s | MP4 ×3 | red guillemet », sentences break at full stops |
 | 10 | Übergänge (demo) | 8.40 s | MP4 ×3 | the three transitions between scenes |
 | 10a–c | Übergang Aufgang / Ecke / Silber | 1.20 / 1.28 / 1.04 s | MOV + WebM alpha ×3 | **cut point = half the duration** |
 | 11 | Social „Parteitag · Live“ | 8.64 s | MP4 ×3 | label, word, slogan editable |
 | 12 | Abspann | 7.20 s | MP4 ×3 | ends on a hold — the last frame is the end card |
-| 13 | Bühnen-Loop | 19.20 s | MP4 ×3 | seamless (frame 0 = frame N) for LED walls |
+| 13 | Bühnen-Loop | 19.20 s | MP4 ×3 + 12:5 | seamless (frame 0 = frame N) for hall screens and the 3840×1600 LED wall |
+
+\* The opener is the one place where 16:9 shows the full bottom landscape instead of the
+corner motif: the camera lands on the whole Bogen — the hero frame of the system, also
+usable as a stage backdrop. Every other 16:9 piece uses the corner, as the presentation set does.
 
 ## 7 · Files
 
@@ -131,6 +156,7 @@ die-mitte-motion/
 ├─ showcase/Die-Mitte-Motion-Showcase.html   live showcase + guidelines (self-contained)
 ├─ exports/
 │  ├─ video/16x9 | 9x16 | 1x1/   MP4 masters   DM-<no>_<name>_<format>.mp4
+│  ├─ video/12x5/                stage wall    DM-13_Buehnen-Loop_12x5.mp4 (3840×1600)
 │  ├─ video/alpha/               overlays      DM-<no>_<name>_<format>.mov / .webm
 │  ├─ stills/16x9 | 9x16 | 1x1/  style frames (PNG)
 │  └─ contact-sheets/            one board per composition, all formats
@@ -139,7 +165,7 @@ die-mitte-motion/
 │  ├─ brand/      logo (exact outlines + band draw-on), arcs, arc moves, transitions, bug
 │  ├─ comps/      the compositions (00–13)
 │  └─ showcase/   browser app for the showcase
-├─ tools/         render.mjs, build-showcase.mjs, extract-geometry.py
+├─ tools/         render.mjs, qa.mjs, build-showcase.mjs, extract-geometry.py
 └─ assets/fonts/  URW Gothic Book + Demi (AGPL-3.0 with font exception)
 ```
 
@@ -160,13 +186,20 @@ npm run qa           # brand QA: type never on the arcs, 9:16 type outside the U
 node tools/render.mjs                                  # everything (all formats)
 node tools/render.mjs --comp opener --format 9x16      # one piece, one format
 node tools/render.mjs --mode stills                    # style frames
+node tools/render.mjs --mode board                     # contact sheets (all formats per piece)
 node tools/render.mjs --mode sheet --out /tmp/review   # filmstrip for review
 node tools/render.mjs --jobs 4                         # parallel
 node tools/build-showcase.mjs                          # rebuild the showcase
 ```
 
 Options: `--fps 50` (frame rate is free; all motion is time-based), `--samples 24`
-(motion-blur sub-frames, `1` = off), `--shutter 180`, `--crf 12`.
+(motion-blur sub-frames, `1` = off), `--shutter 180` (pieces with their own shutter
+curve keep it), `--crf 12`.
+
+**Brand QA** (`npm run qa`) renders every composition in every format every 0.2 s three
+times — complete, without type, without type and arcs — and compares the frames pixel by
+pixel. It fails if type touches the arcs (more than 0.4 % of a frame's type pixels) or if
+9:16 type enters the platform UI zones (top 250 px, bottom 400 px).
 
 ### Custom texts
 

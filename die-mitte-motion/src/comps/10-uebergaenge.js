@@ -20,6 +20,7 @@ function overlay(kind, no, name) {
     name,
     category: 'Übergang',
     alpha: true,
+    shutter: 90, // crisp colour bands
     notes: 'Overlay with alpha. Put it over a hard cut: the cut point is exactly half the duration (frame fully covered by silver).',
     duration: D[kind],
     stills: [D[kind] * 0.3, D[kind] * 0.5, D[kind] * 0.7],
@@ -53,8 +54,9 @@ export const demo = {
   name: 'Aufgang · Ecke · Silber',
   category: 'Übergang',
   notes: 'Demo of the three transitions between example scenes.',
+  shutter: 90,
   duration: 8.4,
-  stills: [2.0, 2.2, 4.4, 6.6],
+  stills: [1.95, 2.45, 4.15, 6.75],
   draw(ctx, t, fmt) {
     // timeline: scene, transition (overlapping the cut), scene, ...
     let cur = 0;

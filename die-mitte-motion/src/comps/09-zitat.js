@@ -1,22 +1,23 @@
 // 09 — Zitat (quote card)
-// A red quotation mark opens the frame, the sentences rise one by one,
-// the attribution lands a beat later. Hanging punctuation keeps the text edge clean.
+// A red guillemet opens the quote, the sentences rise one by one, the
+// attribution lands a beat later. Line breaks follow the sentences.
 
 import { background } from '../core/stage.js';
 import { prog, clamp01 } from '../core/time.js';
-import { tok } from '../formats.js';
+import { E } from '../core/ease.js';
+import { tok, scale } from '../formats.js';
 import { C } from '../brand/palette.js';
-import { revealLine, wrap, CAP } from '../core/text.js';
+import { revealLine, text, wrap, font, CAP } from '../core/text.js';
 import { drawArcs, place, motion } from '../brand/arcs.js';
 import { aufgang, senken } from '../brand/arc-moves.js';
-import { logoBug } from '../brand/bug.js';
+import { logoBug, bugGeometry } from '../brand/bug.js';
 
 const OUT = 7.08;
 
 const GEO = {
-  '16x9': { x: 128, top: 300, size: 76, maxW: 1240, mark: 300, attr: 38, role: 30, arcS: 0.56 },
-  '9x16': { x: 96, top: 680, size: 76, maxW: 888, mark: 300, attr: 42, role: 34, arcS: 0.62 },
-  '1x1': { x: 88, top: 270, size: 60, maxW: 880, mark: 230, attr: 34, role: 28, arcS: 0.48 },
+  '16x9': { markTop: 150, mark: 210, measure: 1240, arcS: 0.56, bug: 'right' },
+  '9x16': { markTop: null, mark: 200, measure: 888, arcS: 0.62, bug: 'center' },
+  '1x1': { markTop: 120, mark: 170, measure: 904, arcS: 0.48, bug: 'right' },
 };
 
 export default {
@@ -30,37 +31,56 @@ export default {
   duration: 8.16,
   stills: [0.8, 1.8, 3.5, 7.4],
   copy: {
-    quote: 'Zuhören und Verantwortung übernehmen.\nIm Gespräch bleiben.\nGemeinsam handeln.',
+    quote: 'Zuhören und\nVerantwortung übernehmen.\nIm Gespräch bleiben.\nGemeinsam handeln.',
     name: 'Vorname Nachname',
     role: 'Funktion · Die Mitte',
   },
   draw(ctx, t, fmt, copy) {
     background(ctx, fmt);
     const T = tok(fmt);
+    const S = scale(fmt);
     const g = GEO[fmt.id];
     const pl = place(fmt, T.arcKind, g.arcS);
     drawArcs(ctx, T.arcKind, pl, motion(t, { enter: aufgang(T.arcKind, 0.1), exit: senken(T.arcKind, OUT + 0.15), breathe: { amp: 3, period: 6, t0: 1.6 } }));
 
     const exitAt = (d) => clamp01((t - OUT - d) / 0.48);
-    // lines: explicit sentence breaks, wrapped to the measure
-    const lines = copy.quote.split('\n').flatMap((p) => wrap(ctx, p, g.maxW, 'demi', g.size));
-    const lead = g.size * 1.16;
-    const firstBase = g.top + g.size * CAP;
+    const x = T.m;
+    const size = S.h2;
+    const lines = copy.quote.split('\n').flatMap((p) => wrap(ctx, p, g.measure, 'demi', size));
+    const lead = size * 1.16;
 
-    // the quotation mark, hanging above the first line
+    // the guillemet: ink box measured so it sits flush with the column, 45 px above the text
+    ctx.save();
+    ctx.font = font('demi', g.mark);
+    const mm = ctx.measureText('»');
+    ctx.restore();
+    const mAsc = mm.actualBoundingBoxAscent, mDesc = mm.actualBoundingBoxDescent;
+    const bug = bugGeometry(fmt, null, g.bug);
+    const markTop = g.markTop ?? bug.y + bug.hm + 90;
+    const markBase = markTop + mAsc;
+    const markBottom = markBase + mDesc;
+    const firstBase = markBottom + 45 + size * CAP;
+
     const mq = prog(t, 0.25, 0.84);
-    revealLine(ctx, '“', g.x - g.mark * 0.02, g.top - g.size * 0.35, mq, {
-      size: g.mark, color: C.red, maskTop: 1.0, maskBottom: 0.1, exit: exitAt(0),
-    });
+    const mex = E.leave(exitAt(0));
+    if (mq > 0 && mex < 1) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x - 20, markTop - 2, g.mark * 1.2, markBottom - markTop + 4);
+      ctx.clip();
+      const travel = markBottom - markTop + 6;
+      const dy = (1 - mq) * travel - mex * travel;
+      text(ctx, '»', x + Math.min(0, mm.actualBoundingBoxLeft), markBase + dy, { size: g.mark, color: C.red, optical: false });
+      ctx.restore();
+    }
 
     lines.forEach((l, i) => {
-      revealLine(ctx, l, g.x, firstBase + i * lead, prog(t, 0.6 + i * 0.16, 0.84), { size: g.size, exit: exitAt(0.04 + i * 0.04) });
+      revealLine(ctx, l, x, firstBase + i * lead, prog(t, 0.6 + i * 0.16, 0.84), { size, exit: exitAt(0.04 + i * 0.04) });
     });
-    const ab = firstBase + (lines.length - 1) * lead + g.size * 1.25 + g.attr;
-    const aq = prog(t, 0.95 + lines.length * 0.16, 0.8);
-    revealLine(ctx, copy.name, g.x, ab, aq, { size: g.attr, exit: exitAt(0.2) });
-    revealLine(ctx, copy.role, g.x, ab + g.role * 1.45, prog(t, 1.05 + lines.length * 0.16, 0.8), { size: g.role, weight: 'book', exit: exitAt(0.24) });
+    const ab = firstBase + (lines.length - 1) * lead + size * 0.9 + S.body * 1.2;
+    revealLine(ctx, copy.name, x, ab, prog(t, 0.95 + lines.length * 0.16, 0.8), { size: S.body, exit: exitAt(0.2) });
+    revealLine(ctx, copy.role, x, ab + S.small * 1.45, prog(t, 1.05 + lines.length * 0.16, 0.8), { size: S.small, weight: 'book', exit: exitAt(0.24) });
 
-    logoBug(ctx, t, fmt, 1.6, { exit: exitAt(0.15) });
+    logoBug(ctx, t, fmt, 1.6, { corner: g.bug === 'right' ? 'right' : undefined, exit: exitAt(0.15) });
   },
 };

@@ -20,11 +20,11 @@ const U_COVER = 0.2; // ±20 % of the duration around the cut is fully covered
 
 // radius (× half-diagonal R), horizontal offset (× R). Back → front.
 const PASS_FULL = [
-  { c: 'mgray', r: 1.3, dx: -0.05 },
-  { c: 'lgray', r: 1.264, dx: 0.04 },
-  { c: 'black', r: 1.228, dx: -0.03 },
-  { c: 'red', r: 1.192, dx: 0.02 },
-  { c: 'gold', r: 1.156, dx: 0.035 },
+  { c: 'mgray', r: 1.32, dx: -0.05 },
+  { c: 'lgray', r: 1.275, dx: 0.04 },
+  { c: 'black', r: 1.23, dx: -0.03 },
+  { c: 'red', r: 1.19, dx: 0.02 },
+  { c: 'gold', r: 1.155, dx: 0.035 },
   { c: 'silver', r: 1.12, dx: 0 },
 ];
 const PASS_QUIET = [
@@ -67,7 +67,7 @@ function wavePass(ctx, fmt, p, layers) {
 function waveRipple(ctx, fmt, p, origin) {
   const [ox, oy] = origin;
   const span = Math.hypot(Math.max(ox, fmt.w - ox), Math.max(oy, fmt.h - oy)) + 4;
-  const band = Math.max(fmt.w, fmt.h) * 0.022; // colour band width
+  const band = Math.max(fmt.w, fmt.h) * 0.026; // colour band width
   const W = span * 1.12; // silver body width
   const a = 0.72; // slow-middle amount
   const u = 2 * clamp01(p) - 1;

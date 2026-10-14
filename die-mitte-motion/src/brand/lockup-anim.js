@@ -35,7 +35,7 @@ export function lockupHReveal(ctx, t, geo, tm, o = {}) {
   if (ex > 0) {
     // leave upwards through a mask at the lockup's top
     ctx.beginPath();
-    ctx.rect(x - hm, y - hm * 0.3, W + hm * 2, hm * 1.6);
+    ctx.rect(x - hm, y - 1, W + hm * 2, hm * 1.3);
     ctx.clip();
     ctx.translate(0, -ex * hm * 1.4);
   }

@@ -82,9 +82,12 @@ function paintPart(ctx, part) {
   const path = svgPath(part.d);
   ctx.fillStyle = part.fill;
   ctx.fill(path);
-  // The originals carry a 0.7 unit stroke in the fill colour to close seams.
+  // The originals carry a 0.7 unit stroke in the fill colour to close seams; at small
+  // sizes that is less than a pixel, so keep it at ≥ 1.1 device px (≈ 0.5 px growth).
+  const T = ctx.getTransform();
+  const dev = Math.hypot(T.a, T.b) || 1;
   ctx.strokeStyle = part.fill;
-  ctx.lineWidth = 0.7;
+  ctx.lineWidth = Math.max(0.7, 1.1 / dev);
   ctx.lineJoin = 'round';
   ctx.stroke(path);
 }

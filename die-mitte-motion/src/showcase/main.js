@@ -2,7 +2,7 @@
 // Same code as the offline renderer; only motion blur is omitted here.
 
 import { COMPS, durationOf } from '../comps/index.js';
-import { FORMATS } from '../formats.js';
+import { FORMATS, FORMAT_IDS } from '../formats.js';
 import { E } from '../core/ease.js';
 import { FPS } from '../core/time.js';
 import { drawM, bandEase } from '../brand/logo.js';
@@ -16,6 +16,8 @@ const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const DPR = Math.min(window.devicePixelRatio || 1, 2);
 const compById = (id) => COMPS.find((c) => c.id === id);
+const formatsOf = (c) => c.formats || FORMAT_IDS;
+const inAllFormats = (c) => FORMAT_IDS.every((f) => formatsOf(c).includes(f));
 const fileName = (c, f) => `DM-${c.no}_${(c.file || c.title).replace(/[^\wÄÖÜäöüß-]+/g, '-')}_${f}`;
 
 // ------------------------------------------------------------------ players
@@ -49,6 +51,11 @@ function guides(ctx, fmt, s) {
     ctx.fillRect(0, 0, fmt.w, 250);
     ctx.fillRect(0, fmt.h - 400, fmt.w, 400);
     ctx.strokeRect(64, 250, fmt.w - 128, fmt.h - 650);
+  } else if (fmt.id === '12x5') {
+    const zone = tok(fmt).bottomSafe; // lectern and speaker stand in front of the wall's lower part
+    ctx.fillStyle = 'rgba(0,140,255,0.08)';
+    ctx.fillRect(0, fmt.h - zone, fmt.w, zone);
+    ctx.strokeRect(fmt.w * 0.05, fmt.h * 0.05, fmt.w * 0.9, fmt.h * 0.95 - zone);
   } else {
     const m = fmt.w * 0.05;
     ctx.strokeRect(m, fmt.h * 0.05, fmt.w - 2 * m, fmt.h * 0.9); // title safe 90 %
@@ -170,7 +177,7 @@ function easingPlots() {
 // ------------------------------------------------------------------ library + modal
 function libraryCards() {
   const grid = $('#library-grid');
-  const visibleComps = COMPS.filter((c) => !c.formats); // all-format pieces (the reel plays in the hero)
+  const visibleComps = COMPS.filter(inAllFormats); // the reel (16:9 only) plays in the hero
   grid.innerHTML = visibleComps.map((c) => `
     <article class="card" data-id="${c.id}">
       <div class="stage"><canvas data-comp="${c.id}"></canvas></div>
@@ -203,7 +210,7 @@ function openModal(id, format) {
   const fmt = format || $('#library-grid').dataset.format || '16x9';
   $('#m-title').innerHTML = `<span class="no">${c.no}</span> ${c.title}${c.name ? ` <em>${c.name}</em>` : ''}`;
   $('#m-notes').textContent = c.notes || '';
-  const files = ['16x9', '9x16', '1x1'].map((f) => `${c.alpha ? 'video/alpha/' : `video/${f}/`}${fileName(c, f)}${c.alpha ? '.mov / .webm' : '.mp4'}`);
+  const files = formatsOf(c).map((f) => `${c.alpha ? 'video/alpha/' : `video/${f}/`}${fileName(c, f)}${c.alpha ? '.mov / .webm' : '.mp4'}`);
   $('#m-files').innerHTML = files.map((f) => `<li><code>${f}</code></li>`).join('');
   if (!modalPlayer) {
     modalPlayer = new Player($('#m-canvas'), { comp: id, format: fmt });
@@ -233,6 +240,8 @@ function openModal(id, format) {
       if (e.key === 'ArrowRight') $('#m-next').click();
     });
   }
+  // extra masters (12:5 stage wall) only where the piece has them
+  $$('[data-m-format]').forEach((x) => { x.hidden = !formatsOf(c).includes(x.dataset.mFormat); });
   $$('[data-m-format]').forEach((x) => x.classList.toggle('on', x.dataset.mFormat === fmt));
   modalPlayer.fmt = FORMATS[fmt];
   modalPlayer.setComp(id);
@@ -251,7 +260,7 @@ function deliverables() {
   const rows = COMPS.map((c) => {
     const d = durationOf(c, FORMATS['16x9']);
     const kind = c.alpha ? 'MOV (PNG, alpha) + WebM (VP9, alpha)' : 'MP4 (H.264, BT.709)';
-    return `<tr><td class="no">${c.no}</td><td>${c.title}${c.name ? ` <em>${c.name}</em>` : ''}</td><td>${d.toFixed(2).replace('.', ',')} s · ${Math.round(d * FPS)} f</td><td>${kind}</td><td><code>${fileName(c, '{16x9|9x16|1x1}')}${c.alpha ? '.mov / .webm' : '.mp4'}</code></td></tr>`;
+    return `<tr><td class="no">${c.no}</td><td>${c.title}${c.name ? ` <em>${c.name}</em>` : ''}</td><td>${d.toFixed(2).replace('.', ',')} s · ${Math.round(d * FPS)} f</td><td>${kind}</td><td><code>${fileName(c, formatsOf(c).length > 1 ? `{${formatsOf(c).join('|')}}` : formatsOf(c)[0])}${c.alpha ? '.mov / .webm' : '.mp4'}</code></td></tr>`;
   });
   $('#deliverables tbody').innerHTML = rows.join('');
 }
@@ -272,7 +281,7 @@ async function boot() {
   // triptych
   const tri = $$('canvas[data-tri]').map((cv) => new Player(cv, { comp: 'opener', format: cv.dataset.tri }));
   const sel = $('#tri-select');
-  sel.innerHTML = COMPS.filter((c) => !c.alpha && !c.formats).map((c) => `<option value="${c.id}">${c.no} — ${c.title}${c.name ? ' · ' + c.name : ''}</option>`).join('');
+  sel.innerHTML = COMPS.filter((c) => !c.alpha && inAllFormats(c)).map((c) => `<option value="${c.id}">${c.no} — ${c.title}${c.name ? ' · ' + c.name : ''}</option>`).join('');
   sel.value = 'opener';
   sel.addEventListener('change', () => tri.forEach((p) => p.setComp(sel.value)));
   window.addEventListener('resize', () => players.forEach((p) => p.size()));
